@@ -1,2 +1,12 @@
 .vs/
 x64/
+ref/
+packages/
+!.gitignore
+!main.cpp
+!Sudoku.cpp
+!Sudoku.h
+!sudoku.sln
+!sudoku.vcxproj
+!sudoku.vcxproj.filters
+!sudoku.vcxproj.user

@@ -5,16 +5,19 @@
 #include <cassert>
 #include "Sudoku.h"
 
+#define DEBUG_TEST
+
 /* global variants */
-int n_finals = 0;					// number of final results
+int n_finale = 0;					// number of final results
 char* input = nullptr;				// file path of games (both relative and absolute path are ok)
-int n_puzzles = 0;					// number of games to be generated
+int n_puzzle = 0;					// number of games to be generated
 int difficulty = MIN_DIFFICULTY;	// difficulty (easy, middle or hard, default is easy)
-int n_blanks = MIN_BLANKS;			// number of blanks
+int n_blank = MIN_BLANK;			// number of blanks
 bool unique = false;				// whether solution is unique (default is not)
 
 /* parse cmdline arguments */
 int main(int argc, char* argv[]) {
+#ifndef DEBUG_TEST
 	if (argc < 2) {
 		Sudoku::print_usage();
 		return 0;
@@ -22,7 +25,7 @@ int main(int argc, char* argv[]) {
 	for (int i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "-c") == 0) {
 			assert(++i < argc);
-			n_finals = atoi(argv[i]);
+			n_finale = atoi(argv[i]);
 			continue;
 		}
 		else if (strcmp(argv[i], "-s") == 0) {
@@ -32,7 +35,7 @@ int main(int argc, char* argv[]) {
 		}
 		else if (strcmp(argv[i], "-n") == 0) {
 			assert(++i < argc);
-			n_puzzles = atoi(argv[i]);
+			n_puzzle = atoi(argv[i]);
 			continue;
 		}
 		else if (strcmp(argv[i], "-m") == 0) {
@@ -42,7 +45,7 @@ int main(int argc, char* argv[]) {
 		}
 		else if (strcmp(argv[i], "-r") == 0) {
 			assert(++i < argc);
-			n_blanks = atoi(argv[i]);
+			n_blank = atoi(argv[i]);
 			continue;
 		}
 		else if (strcmp(argv[i], "-u") == 0) {
@@ -61,16 +64,22 @@ int main(int argc, char* argv[]) {
 	}
 
 	Sudoku s;
-	s.init(n_finals, input, n_puzzles, difficulty, n_blanks, unique);
+	s.init(n_finale, input, n_puzzle, difficulty, n_blank, unique);
 
-	if (n_finals) {
-		s.generate_finals();
+	if (n_finale) {
+		s.generate_finales();
 	}
-	if (n_puzzles) {
+	if (n_puzzle) {
 		s.generate_puzzles();
 	}
 	if (input) {
 		s.solve_puzzles();
 	}
+#else	// DEBUG_TEST
+	n_finale = 1;
+	Sudoku s;
+	s.init(n_finale, input, n_puzzle, difficulty, n_blank, unique);
+	s.generate_finales();
+#endif	// DEBUG_TEST
 	return 0;
 }

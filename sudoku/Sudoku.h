@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstring>
 #include <cstdio>
+#include "utils.h"
 
 /* limitations */
 const int MIN_FINALE = 1;			// minimum of final results
@@ -194,26 +195,8 @@ public:
 	*/
 	void gen_finale(int grid[9][9]) const
 	{
-		int grid_test[9][9] = {
-			{0, 1, 2, 3, 4, 5, 6, 7, 8},
-			{0, 1, 2, 3, 4, 5, 6, 7, 8},
-			{0, 1, 2, 3, 4, 5, 6, 7, 8},
-			{0, 1, 2, 3, 4, 5, 6, 7, 8},
-			{0, 1, 2, 3, 4, 5, 6, 7, 8},
-			{0, 1, 2, 3, 4, 5, 6, 7, 8},
-			{0, 1, 2, 3, 4, 5, 6, 7, 8},
-			{0, 1, 2, 3, 4, 5, 6, 7, 8},
-			{0, 1, 2, 3, 4, 5, 6, 7, 8},
-		};
-		set_grid(grid_test, grid);
-
-		// test_insert
-		int num = 1;
-		int r = 0;
-		int c = 0;
-		if (safe_check(grid, num, r, c)) {
-			grid[r][c] = num;
-		}
+		empty_grid(grid);
+		backtrack_fill(grid);
 	}
 
 	/*
@@ -287,6 +270,66 @@ public:
 		return row_safe(grid, num, r, c)
 			&& col_safe(grid, num, r, c)
 			&& box_safe(grid, num, r, c);
+	}
+
+	/*
+	Search the grid to find a blank.
+	If found, the coordinate will be saved at `pr` and `pc`, and return true
+	else, return false
+	*/
+	bool get_blank(int grid[9][9], int* pr, int* pc) const
+	{
+		int* ptr = nullptr;
+		for (int i = 0; i < 9; i++) {
+			ptr = grid[i];
+			for (int j = 0; j < 9; j++) {
+				if (!*ptr++) {
+					*pr = i;
+					*pc = j;
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/*
+	Using backtracking method to fill all blanks in grid
+	*/
+	bool backtrack_fill(int grid[9][9]) const
+	{
+		int r, c;
+		if (!get_blank(grid, &r, &c)) {
+			return true;
+		}
+		int arr[9] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+		shuffle_array(arr, sizeof(arr) / sizeof(int));
+		for (auto num : arr) {
+			if (safe_check(grid, num, r, c)) {
+				grid[r][c] = num;
+				if (backtrack_fill(grid)) {
+					break;
+				}
+				else {
+					grid[r][c] = 0;	// restore to 0 for the next check
+				}
+			}
+		}
+		return !get_blank(grid, &r, &c);
+	}
+
+	/*
+	Set grid element to zero
+	*/
+	void empty_grid(int grid[9][9]) const
+	{
+		int* ptr = nullptr;
+		for (int i = 0; i < 9; i++) {
+			ptr = grid[i];
+			for (int j = 0; j < 9; j++) {
+				*ptr++ = 0;
+			}
+		}
 	}
 
 	/*

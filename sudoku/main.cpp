@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
 		s.solve_puzzles();
 	}
 #else	// DEBUG_TEST
-	n_finale = 1;
+	n_finale = 20;
 	Sudoku s;
 	s.init(n_finale, input, n_puzzle, difficulty, n_blank, unique);
 	s.generate_finales();

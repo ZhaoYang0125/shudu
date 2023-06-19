@@ -6,26 +6,26 @@
 #include "utils.h"
 
 /* limitations */
-const int MIN_FINALE = 1;			// minimum of final results
-const int MAX_FINALE = (int)1e6;	// maximum of final results
+constexpr int MIN_FINALE = 1;			// minimum of final results
+constexpr int MAX_FINALE = (int)1e6;	// maximum of final results
 
-const int MIN_PUZZLE = 1;			// minimum of games
-const int MAX_PUZZLE = (int)1e4;	// maximum of games
+constexpr int MIN_PUZZLE = 1;			// minimum of games
+constexpr int MAX_PUZZLE = (int)1e4;	// maximum of games
 
-const int MIN_DIFFICULTY = 1;		// minimum of difficulty
-const int MAX_DIFFICULTY = 3;		// maximum of difficulty
+constexpr int MIN_DIFFICULTY = 1;		// minimum of difficulty
+constexpr int MAX_DIFFICULTY = 3;		// maximum of difficulty
 
-const int MIN_BLANK = 20;			// minimum of blanks
-const int MAX_BLANK = 55;			// maximum of blanks
+constexpr int MIN_BLANK = 20;			// minimum of blanks
+constexpr int MAX_BLANK = 55;			// maximum of blanks
 
-const char output[] = "sudoku.txt";	// solution of input
+constexpr char output[] = "sudoku.txt";	// solution of input
 
 /* usage of the executable */
 // because of an encoding problem between file and console, 
 // Chinese words are printed wrongly
 // #define CHINESE_USAGE
 #ifndef CHINESE_USAGE
-const char usage[] = {
+constexpr char usage[] = {
 	"name       meaning                                                 range                       example\n"
 	"---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 	"-c         number of finales to be generated                       1-1000000                   suduku.exe -c 20 [generate 20 finales]\n"
@@ -90,14 +90,15 @@ public:
 	*/
 	void generate_finales() const
 	{
-		assert(_n_finale >= MIN_FINALE && _n_finale <= MAX_FINALE);
+		Assert(_n_finale >= MIN_FINALE && _n_finale <= MAX_FINALE, 
+			"Invalid number of finals: %d. The valid range is [%d, %d]", _n_finale, MIN_FINALE, MAX_FINALE);
 
 		std::cout << "Generating " << _n_finale << " finales..." << std::endl;
-		int grid[9][9];
+		int board[9][9];
 		for (int i = 0; i < _n_finale; i++) {
-			gen_finale(grid);
+			gen_finale(board);
 			std::cout << "Finale " << i + 1 << std::endl;
-			print_grid(grid);
+			print_board(board);
 		}
 		std::cout << "All " << _n_finale << " finale(s) have(has) been generated." << std::endl;
 	}
@@ -105,13 +106,23 @@ public:
 	/*
 	Generate sudoku puzzles.
 	*/
-	void generate_puzzles() const 
+	void generate_puzzles() const
 	{
-		assert(_n_puzzle >= MIN_PUZZLE && _n_puzzle <= MAX_PUZZLE);
-		assert(_difficulty >= MIN_DIFFICULTY && _difficulty <= MAX_DIFFICULTY);
-		assert(_n_blank >= MIN_BLANK && _n_blank <= MAX_BLANK);
+		Assert(_n_puzzle >= MIN_PUZZLE && _n_puzzle <= MAX_PUZZLE,
+			"Invalid number of puzzles: %d. The valid range is [%d, %d]", _n_puzzle, MIN_PUZZLE, MAX_PUZZLE);
+		Assert(_difficulty >= MIN_DIFFICULTY && _difficulty <= MAX_DIFFICULTY,
+			"Invalid difficulty: %d. The valid range is [%d, %d]", _difficulty, MIN_DIFFICULTY, MAX_DIFFICULTY);
+		assert(_n_blank >= MIN_BLANK && _n_blank <= MAX_BLANK,
+			"Invalid number of blanks: %d. The valid range is [%d, %d]", _n_blank, MIN_BLANK, MAX_BLANK);
 
-		std::cout << "generate_games" << std::endl;
+		std::cout << "Generating " << _n_puzzle << " puzzles..." << std::endl;
+		int board[9][9];
+		for (int i = 0; i < _n_puzzle; i++) {
+			gen_finale(board);
+			std::cout << "Puzzle " << i + 1 << std::endl;
+			print_board(board);
+		}
+		std::cout << "All " << _n_finale << " puzzle(s) have(has) been generated." << std::endl;
 	}
 
 	/*
@@ -130,15 +141,15 @@ public:
 	static void print_usage() { std::cout << usage; }
 
 	/*
-	Convert 9 * 9 grid into a flattened string
+	Convert 9 * 9 board into a flattened string
 	`0` will be maped to `$`
 	*/
-	void grid_to_str(int grid[9][9], char* grid_str) const
+	void board_to_str(int board[9][9], char* board_str) const
 	{
 		int* ptr_src = nullptr;
-		char* ptr_dst = grid_str;
+		char* ptr_dst = board_str;
 		for (int i = 0; i < 9; i++) {
-			ptr_src = grid[i];
+			ptr_src = board[i];
 			for (int j = 0; j < 9; j++) {
 				int idx = *ptr_src;
 				*ptr_dst++ = character_map[*ptr_src++];
@@ -147,23 +158,23 @@ public:
 	}
 
 	/* 
-	Print the grid (9 * 9)
+	Print the board (9 * 9)
 	*/
-	void print_grid(int grid[9][9]) const
+	void print_board(int board[9][9]) const
 	{
-		char grid_str[81];
-		grid_to_str(grid, grid_str);	// flatten
-		print_grid(grid_str);
+		char board_str[81];
+		board_to_str(board, board_str);	// flatten
+		print_board(board_str);
 	}
 
 	/*
-	Print the grid (flattened string) in formatted string
+	Print the board (flattened string) in formatted string
 	*/
-	void print_grid(char* grid_str) const
+	void print_board(char* board_str) const
 	{
 		const int buf_sz = 1024;
 		char buffer[buf_sz];
-		char* s = grid_str;
+		char* s = board_str;
 		snprintf(buffer, buf_sz,
 			"-------------------------\n"
 			"| %c %c %c | %c %c %c | %c %c %c |\n"
@@ -193,23 +204,23 @@ public:
 	/*
 	Generate a finale 
 	*/
-	void gen_finale(int grid[9][9]) const
+	void gen_finale(int board[9][9]) const
 	{
-		empty_grid(grid);
-		backtrack_fill(grid);
+		empty_board(board);
+		backtrack_fill(board);
 	}
 
 	/*
 	Check whether insert a num at specific coordinate is safe
 	by scanning the row
 	*/
-	bool row_safe(int grid[9][9], int num, int r, int c) const
+	bool row_safe(int board[9][9], int num, int r, int c) const
 	{
-		if (grid[r][c]) {
+		if (board[r][c]) {
 			return false;		// pos(r, c) already has a number
 		}
 		for (int j = 0; j < 9; j++) {
-			if (grid[r][j] == num) {
+			if (board[r][j] == num) {
 				return false;	// numbers in a row cannot be the same
 			}
 		}
@@ -220,13 +231,13 @@ public:
 	Check whether insert a num at specific coordinate is safe
 	by scanning the column
 	*/
-	bool col_safe(int grid[9][9], int num, int r, int c) const
+	bool col_safe(int board[9][9], int num, int r, int c) const
 	{
-		if (grid[r][c]) {
+		if (board[r][c]) {
 			return false;		// pos(r, c) already has a number
 		}
 		for (int i = 0; i < 9; i++) {
-			if (grid[i][c] == num) {
+			if (board[i][c] == num) {
 				return false;	// numbers in a row cannot be the same
 			}
 		}
@@ -237,9 +248,9 @@ public:
 	Check whether insert a num at specific coordinate is safe
 	by scanning the box
 	*/
-	bool box_safe(int grid[9][9], int num, int r, int c) const
+	bool box_safe(int board[9][9], int num, int r, int c) const
 	{
-		// start coordinates are
+		// start coordinates of boxes are
 		// (0, 0), (0, 3), (0, 6)
 		// (3, 0), (3, 3), (3, 6)
 		// (6, 0), (6, 3), (6, 6)
@@ -248,7 +259,7 @@ public:
 		int s_c = (c / 3) * 3;
 		int* ptr = nullptr;
 		for (int i = s_r; i < s_r + 3; i++) {
-			ptr = grid[i] + s_c;
+			ptr = board[i] + s_c;
 			for (int j = s_c; j < s_c + 3; j++) {
 				if (*ptr++ == num) {
 					return false;
@@ -262,70 +273,82 @@ public:
 	Check whether insert a num at specific coordinate is safe
 	by scanning the row
 	*/
-	bool safe_check(int grid[9][9], int num, int r, int c) const
+	bool safe_check(int board[9][9], int num, int r, int c) const
 	{
 		assert(num >= 1 && num <= 9
 			&& r >= 0 && r <= 8
 			&& c >= 0 && c <= 8);
-		return row_safe(grid, num, r, c)
-			&& col_safe(grid, num, r, c)
-			&& box_safe(grid, num, r, c);
+		return row_safe(board, num, r, c)
+			&& col_safe(board, num, r, c)
+			&& box_safe(board, num, r, c);
 	}
 
 	/*
-	Search the grid to find a blank.
+	Search the board to find a blank.
 	If found, the coordinate will be saved at `pr` and `pc`, and return true
 	else, return false
+	`randomly` controls whether the next blank is chosen randomly
 	*/
-	bool get_blank(int grid[9][9], int* pr, int* pc) const
+	bool get_blank(int board[9][9], int* pr, int* pc, bool randomly = false) const
 	{
-		int* ptr = nullptr;
-		for (int i = 0; i < 9; i++) {
-			ptr = grid[i];
-			for (int j = 0; j < 9; j++) {
-				if (!*ptr++) {
-					*pr = i;
-					*pc = j;
-					return true;
+		if (!randomly) {
+			int* ptr = nullptr;
+			for (int i = 0; i < 9; i++) {
+				ptr = board[i];
+				for (int j = 0; j < 9; j++) {
+					if (!*ptr++) {
+						*pr = i;
+						*pc = j;
+						return true;
+					}
 				}
 			}
+			return false;
 		}
-		return false;
+		assert(false, "please implement me\n");
 	}
 
 	/*
-	Using backtracking method to fill all blanks in grid
+	Using backtracking method to fill all blanks in board
 	*/
-	bool backtrack_fill(int grid[9][9]) const
+	bool backtrack_fill(int board[9][9], int* n_solution = nullptr) const
 	{
 		int r, c;
-		if (!get_blank(grid, &r, &c)) {
+		if (!get_blank(board, &r, &c)) {
 			return true;
 		}
 		int arr[9] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 		shuffle_array(arr, sizeof(arr) / sizeof(int));
 		for (auto num : arr) {
-			if (safe_check(grid, num, r, c)) {
-				grid[r][c] = num;
-				if (backtrack_fill(grid)) {
+			if (safe_check(board, num, r, c)) {
+				board[r][c] = num;
+				if (backtrack_fill(board)) {
 					break;
 				}
 				else {
-					grid[r][c] = 0;	// restore to 0 for the next check
+					board[r][c] = 0;	// restore to 0 for the next check
 				}
 			}
 		}
-		return !get_blank(grid, &r, &c);
+		return !get_blank(board, &r, &c);
 	}
 
 	/*
-	Set grid element to zero
+	Using backtracking method to poke blanks in board
 	*/
-	void empty_grid(int grid[9][9]) const
+	bool backtrack_poke(int board[9][9]) const
+	{
+
+	}
+
+	/*
+	Set board element to zero
+	*/
+	void empty_board(int board[9][9]) const
 	{
 		int* ptr = nullptr;
 		for (int i = 0; i < 9; i++) {
-			ptr = grid[i];
+			ptr = board[i];
 			for (int j = 0; j < 9; j++) {
 				*ptr++ = 0;
 			}
@@ -333,9 +356,9 @@ public:
 	}
 
 	/*
-	manully set the gridand copy to the dst
+	manully set the boardand copy to the dst
 	*/
-	void set_grid(int src[9][9], int dst[9][9]) const
+	void set_board(int src[9][9], int dst[9][9]) const
 	{
 		int* src_ptr = nullptr, * dst_ptr = nullptr;
 		for (int i = 0; i < 9; i++) {

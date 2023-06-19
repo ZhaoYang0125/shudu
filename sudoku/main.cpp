@@ -24,27 +24,32 @@ int main(int argc, char* argv[]) {
 	}
 	for (int i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "-c") == 0) {
-			assert(++i < argc);
+			Assert(++i < argc, 
+				"The number of finales to be generated following with `-c` needs to be provided!");
 			n_finale = atoi(argv[i]);
 			continue;
 		}
 		else if (strcmp(argv[i], "-s") == 0) {
-			assert(++i < argc);
+			Assert(++i < argc, 
+				"The file path of puzzles to be solved following with `-s` needs to be provided!");
 			input = argv[i];
 			continue;
 		}
 		else if (strcmp(argv[i], "-n") == 0) {
-			assert(++i < argc);
+			Assert(++i < argc, 
+				"The number of puzzles to be generated following with `-n` needs to be provided!");
 			n_puzzle = atoi(argv[i]);
 			continue;
 		}
 		else if (strcmp(argv[i], "-m") == 0) {
-			assert(++i < argc);
-			difficulty = atoi(argv[i]);
+			Assert(++i < argc, 
+				"The difficulty of puzzles to be generated following with `-m` needs to be provided!");
+			difficulty = atoi(argv[i], );
 			continue;
 		}
 		else if (strcmp(argv[i], "-r") == 0) {
-			assert(++i < argc);
+			Assert(++i < argc, 
+				"The number of blanks in each puzzle to be generated following with `-r` needs to be provided!");
 			n_blank = atoi(argv[i]);
 			continue;
 		}
@@ -57,9 +62,7 @@ int main(int argc, char* argv[]) {
 			continue;
 		}
 		else {
-			std::cerr << "Wrong Commands!" << std::endl;
-			Sudoku::print_usage();
-			exit(1);
+			Assert(false, "Please input write commands!");
 		}
 	}
 
@@ -76,10 +79,10 @@ int main(int argc, char* argv[]) {
 		s.solve_puzzles();
 	}
 #else	// DEBUG_TEST
-	n_finale = 20;
+	n_puzzle = 1;
 	Sudoku s;
 	s.init(n_finale, input, n_puzzle, difficulty, n_blank, unique);
-	s.generate_finales();
+	s.generate_puzzles();
 #endif	// DEBUG_TEST
 	return 0;
 }

@@ -7,3 +7,6 @@
 !sudoku.vcxproj.filters
 !sudoku.vcxproj.user
 !utils.h
+packages/
+ref/
+x64/

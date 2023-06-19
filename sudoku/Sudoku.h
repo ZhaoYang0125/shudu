@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstring>
 #include <cstdio>
+#include <utility>
 #include "utils.h"
 
 /* limitations */
@@ -119,6 +120,7 @@ public:
 		int board[9][9];
 		for (int i = 0; i < _n_puzzle; i++) {
 			gen_finale(board);
+			gen_puzzle(board);
 			std::cout << "Puzzle " << i + 1 << std::endl;
 			print_board(board);
 		}
@@ -207,7 +209,15 @@ public:
 	void gen_finale(int board[9][9]) const
 	{
 		empty_board(board);
-		backtrack_fill(board);
+		backtracking_fill(board);
+	}
+
+	/*
+	Generate a puzzle from a finale
+	*/
+	void gen_puzzle(int board[9][9]) const
+	{
+		backtracking_poke(board);
 	}
 
 	/*
@@ -284,19 +294,20 @@ public:
 	}
 
 	/*
-	Search the board to find a blank.
+	Search the board to find a blank or non-blank.
 	If found, the coordinate will be saved at `pr` and `pc`, and return true
 	else, return false
-	`randomly` controls whether the next blank is chosen randomly
+	`is_blank` controls the next is `blank` or `non-blank`
+	`randomly` controls whether the next is chosen randomly
 	*/
-	bool get_blank(int board[9][9], int* pr, int* pc, bool randomly = false) const
+	bool get_next(int board[9][9], int* pr, int* pc, bool is_blank = true, bool randomly = false) const
 	{
 		if (!randomly) {
 			int* ptr = nullptr;
 			for (int i = 0; i < 9; i++) {
 				ptr = board[i];
 				for (int j = 0; j < 9; j++) {
-					if (!*ptr++) {
+					if ((bool) (*ptr++) ^ is_blank) {
 						*pr = i;
 						*pc = j;
 						return true;
@@ -305,16 +316,36 @@ public:
 			}
 			return false;
 		}
-		assert(false, "please implement me\n");
+		// randomly choose
+		std::pair<int, int> candidates[81];
+		int* p_src = nullptr;
+		int cnt = 0;
+		for (int i = 0; i < 9; i++) {
+			p_src = board[i];
+			for (int j = 0; j < 9; j++) {
+				if ((bool)(*p_src++) ^ is_blank) {
+					auto* p_dst = candidates + cnt++;
+					p_dst->first = i;
+					p_dst->second = j;
+				}
+			}
+		}
+		if (!cnt) {
+			return false;
+		}
+		shuffle_array(candidates, cnt);
+		*pr = candidates[0].first;
+		*pc = candidates[1].second;
+		return true;
 	}
 
 	/*
 	Using backtracking method to fill all blanks in board
 	*/
-	bool backtrack_fill(int board[9][9], int* n_solution = nullptr) const
+	bool backtracking_fill(int board[9][9]) const
 	{
 		int r, c;
-		if (!get_blank(board, &r, &c)) {
+		if (!get_next(board, &r, &c, true)) {
 			return true;
 		}
 		int arr[9] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -322,7 +353,7 @@ public:
 		for (auto num : arr) {
 			if (safe_check(board, num, r, c)) {
 				board[r][c] = num;
-				if (backtrack_fill(board)) {
+				if (backtracking_fill(board)) {
 					break;
 				}
 				else {
@@ -330,15 +361,27 @@ public:
 				}
 			}
 		}
-		return !get_blank(board, &r, &c);
+		return !get_next(board, &r, &c, true);
 	}
 
 	/*
 	Using backtracking method to poke blanks in board
 	*/
-	bool backtrack_poke(int board[9][9]) const
+	bool backtracking_poke(int board[9][9]) const
 	{
-
+		int board_blanks = get_board_blanks(board);
+		if (board_blanks > _n_blank) {	// blanks number exceeded
+			return false;
+		}
+		if (board_blanks == _n_blank) {	// no need to poke
+			return true;
+		}
+		int r, c;
+		if (!get_next(board, &r, &c, false, true)) {
+			return false;	// cannot find a non-block to poke
+		}
+		board[r][c] = 0;	// poke
+		return backtracking_poke(board);
 	}
 
 	/*
@@ -368,6 +411,32 @@ public:
 				*dst_ptr++ = *src_ptr++;
 			}
 		}
+	}
+
+	/*
+	Count blanks of a board
+	*/
+	int get_board_blanks(int board[9][9]) const
+	{
+		int* ptr = nullptr;
+		int cnt = 0;
+		for (int i = 0; i < 9; i++) {
+			ptr = board[i];
+			for (int j = 0; j < 9; j++) {
+				if (!*ptr++) {
+					cnt++;
+				}
+			}
+		}
+		return cnt;
+	}
+
+	/*
+	Count non-blanks of a board
+	*/
+	int get_board_non_blanks(int board[9][9]) const
+	{
+		return 81 - get_board_blanks(board);
 	}
 };
 

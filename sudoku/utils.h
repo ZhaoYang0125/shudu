@@ -16,7 +16,8 @@
 /*
 Shuffle `arr` of `len` randomly
 */
-static void shuffle_array(int* arr, int len)
+template <class T>
+static void shuffle_array(T* arr, int len)
 {
 	uint32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::shuffle(arr, arr + len, std::default_random_engine(seed));

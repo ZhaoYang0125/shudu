@@ -12,7 +12,7 @@ int main(){
     infile.open(path,ios::in);
     string line;
     int linecnt=0;//读取的行数
-    string board[9][9];//棋盘
+    char board[9][9];//棋盘
     string gameName;//游戏名字
     while (getline(infile,line)){
         linecnt++;
@@ -27,18 +27,18 @@ int main(){
         //把文件内容读取到数组中
         int i=0;
         while(getline(ss,num,' ')){
-            board[linecnt-1][i++]=num;
+            board[linecnt-1][i++]=num[0];
         }
 
         //读出一种棋盘形式，开始求解
         if(linecnt==9){
-            cout<<gameName<<endl;
-            for(int i=0;i<9;i++){
-                for(int j=0;j<9;j++){
-                    cout<<board[i][j];
-                }
-                cout<<endl;
-            }
+            cout<<gameName<<" answer:"<<endl;
+            // for(int i=0;i<9;i++){
+            //     for(int j=0;j<9;j++){
+            //         cout<<board[i][j];
+            //     }
+            //     cout<<endl;
+            // }
         }
 
     }

@@ -6,6 +6,7 @@
 #include<vector>
 using namespace std;
 #define GAME_NAME "game1.txt"
+#define ANSWER_PATH "./answer/"
 
 bool row[9][9];                 //存储行中数字存在的信息
 bool column[9][9];              //存储列中数字存在的信息
@@ -64,10 +65,14 @@ void solveGame(char Board[][9]){
 
 int main(){
     // cout<<"111"<<endl;
-    string path="./game/";//游戏文件路径
-    path += GAME_NAME;
+    string gamePath="./game/";//游戏文件路径
+    gamePath += GAME_NAME;
+    string answerPath=ANSWER_PATH;
+    answerPath+= GAME_NAME;
     ifstream infile;
-    infile.open(path,ios::in);
+    infile.open(gamePath,ios::in);
+    ofstream outfile;
+    outfile.open(answerPath,ios::out);
     string line;
     int linecnt=0;//读取的行数
     while (getline(infile,line)){
@@ -88,14 +93,14 @@ int main(){
 
         //读出一种棋盘形式，开始求解
         if(linecnt==9){
-            cout<<gameName<<" answer:"<<endl;
+            outfile<<gameName<<endl<<" answer:"<<endl;
             // clear();
             solveGame(board);
             for(int i=0;i<9;i++){
                 for(int j=0;j<9;j++){
-                    cout<<board[i][j]<<" ";
+                    outfile<<board[i][j]<<" ";
                 }
-                cout<<endl;
+                outfile<<endl;
             }
         }
 

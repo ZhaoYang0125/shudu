@@ -6,6 +6,8 @@
 #include "Sudoku.h"
 
 #define DEBUG_TEST
+//#define DEBUG_TEST_GEN_FINALE
+#define DEBUG_TEST_GEN_PUZZLE
 
 /* global variants */
 int n_finale = 0;					// number of final results
@@ -79,10 +81,19 @@ int main(int argc, char* argv[]) {
 		s.solve_puzzles();
 	}
 #else	// DEBUG_TEST
+#ifdef DEBUG_TEST_GEN_FINALE
+	n_finale = 1;
+	Sudoku s;
+	s.init(n_finale, input, n_puzzle, difficulty, n_blank, unique);
+	s.generate_finales();
+#endif
+#ifdef DEBUG_TEST_GEN_PUZZLE
 	n_puzzle = 1;
+	unique = true;
 	Sudoku s;
 	s.init(n_finale, input, n_puzzle, difficulty, n_blank, unique);
 	s.generate_puzzles();
+#endif
 #endif	// DEBUG_TEST
 	return 0;
 }

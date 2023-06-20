@@ -141,3 +141,84 @@ TEST(test_get_next, get_blank)
 	};
 	EXPECT_EQ(s.get_next(board3, &r, &c, true), false);	// no blank
 }
+
+TEST(test_backtracking_fill, test_effectiveness)
+{
+	// Generate a finale and check if it is valid
+
+	int n_finale = 0;					// number of final results
+	char* input = nullptr;				// file path of games (both relative and absolute path are ok)
+	int n_puzzle = 0;					// number of games to be generated
+	int difficulty = MIN_DIFFICULTY;	// difficulty (easy, middle or hard, default is easy)
+	int n_blank = MIN_BLANK;			// number of blanks
+	bool unique = false;				// whether solution is unique (default is not)
+
+	n_finale = 1;
+	Sudoku s;
+	s.init(n_finale, input, n_puzzle, difficulty, n_blank, unique);
+	int board[9][9];
+	s.empty_board(board);
+	s.backtracking_fill(board);
+	int* ptr = nullptr;
+	for (int i = 0; i < 9; i++) {
+		ptr = board[i];
+		for (int j = 0; j < 9; j++) {
+			int tmp = *ptr;
+			*ptr++ = 0;
+			EXPECT_EQ(s.safe_check(board, tmp, i, j), true);
+		}
+	}
+}
+
+TEST(test_backtracking_fill, test_solution_count)
+{
+	// Generate a finale and check if it is valid
+	int n_finale = 0;					// number of final results
+	char* input = nullptr;				// file path of games (both relative and absolute path are ok)
+	int n_puzzle = 0;					// number of games to be generated
+	int difficulty = MIN_DIFFICULTY;	// difficulty (easy, middle or hard, default is easy)
+	int n_blank = MIN_BLANK;			// number of blanks
+	bool unique = false;				// whether solution is unique (default is not)
+
+	n_puzzle = 1;
+	Sudoku s;
+	s.init(n_finale, input, n_puzzle, difficulty, n_blank, unique);
+	int board[9][9];
+	int n_solution = 0;
+	bool early_stop = false;
+	while (n_solution <= 1) {	// theoretically more than one solution `can` be found
+		s.gen_puzzle(board);
+		s.backtracking_fill(board, early_stop, &n_solution);
+	}
+	EXPECT_EQ(true, true);	// while reaching here, a puzzle has more than one solution
+}
+
+TEST(test_native_poke, test_uniqueness)
+{
+	// Since the test metioned above works, we use backtracking filling method to 
+	// check if unique puzzles will be generated as required.
+	int n_finale = 0;					// number of final results
+	char* input = nullptr;				// file path of games (both relative and absolute path are ok)
+	int n_puzzle = 0;					// number of games to be generated
+	int difficulty = MIN_DIFFICULTY;	// difficulty (easy, middle or hard, default is easy)
+	int n_blank = MIN_BLANK;			// number of blanks
+	bool unique = true;					// whether solution is unique (default is not)
+
+	//int max_test_times = 2147483647;	// int32_t max
+	int max_test_times = 10000;
+
+	n_puzzle = 1;
+	Sudoku s;
+	s.init(n_finale, input, n_puzzle, difficulty, n_blank, unique);
+	int board[9][9];
+	s.gen_finale(board);
+	int n_solution = 1;
+	for (int i = 0; i < max_test_times; i++) {
+		s.naive_poke(board);	// since `unique` is true, only one-solution puzzle will be generated
+		s.backtracking_fill(board, false, &n_solution);
+		if (n_solution >= 2) {
+			break;
+		}
+	}
+	EXPECT_EQ(n_solution, 1);	// while reaching here, `max_test_times` is ran out
+}

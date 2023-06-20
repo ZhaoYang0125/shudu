@@ -124,7 +124,7 @@ public:
 			std::cout << "Puzzle " << i + 1 << std::endl;
 			print_board(board);
 		}
-		std::cout << "All " << _n_finale << " puzzle(s) have(has) been generated." << std::endl;
+		std::cout << "All " << _n_puzzle << " puzzle(s) have(has) been generated." << std::endl;
 	}
 
 	/*
@@ -217,7 +217,7 @@ public:
 	*/
 	void gen_puzzle(int board[9][9]) const
 	{
-		backtracking_poke(board);
+		naive_poke(board);
 	}
 
 	/*
@@ -341,8 +341,11 @@ public:
 
 	/*
 	Using backtracking method to fill all blanks in board
+	`early_stop` controls whether stoping after finding the first solution.
+		if `early_stop` is `true`, we will get the last solution
+	`n_solution` counts the number of solutions.
 	*/
-	bool backtracking_fill(int board[9][9]) const
+	bool backtracking_fill(int board[9][9], bool early_stop = true, int* n_solution = nullptr) const
 	{
 		int r, c;
 		if (!get_next(board, &r, &c, true)) {
@@ -350,16 +353,21 @@ public:
 		}
 		int arr[9] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 		shuffle_array(arr, sizeof(arr) / sizeof(int));
+		int cnt = 0;
 		for (auto num : arr) {
 			if (safe_check(board, num, r, c)) {
 				board[r][c] = num;
 				if (backtracking_fill(board)) {
-					break;
+					cnt++;	// a solution is found
+					if (early_stop) {	// if `early_stop`, no need to find the next solution
+						break;
+					}
 				}
-				else {
-					board[r][c] = 0;	// restore to 0 for the next check
-				}
+				board[r][c] = 0;	// restore to 0 for the next check
 			}
+		}
+		if (n_solution) {
+			*n_solution = cnt;
 		}
 		return !get_next(board, &r, &c, true);
 	}
@@ -367,21 +375,29 @@ public:
 	/*
 	Using backtracking method to poke blanks in board
 	*/
-	bool backtracking_poke(int board[9][9]) const
+	bool naive_poke(int board[9][9]) const
 	{
-		int board_blanks = get_board_blanks(board);
-		if (board_blanks > _n_blank) {	// blanks number exceeded
+		if (get_board_blanks(board) > _n_blank) {	// blanks number exceeded
 			return false;
 		}
-		if (board_blanks == _n_blank) {	// no need to poke
-			return true;
+		while (get_board_blanks(board) < _n_blank) {
+			int r, c;
+			if (!get_next(board, &r, &c, false, true)) {	// randomly get a non-blank
+				return false;	// cannot find a non-block to poke
+			}
+			int tmp_num = board[r][c];
+			board[r][c] = 0;	// poke
+			if (_unique) {	// ensure each poking step does not cause a multi-solution puzzle
+				int n_solution = 0;
+				int tmp_board[9][9];
+				copy_board(board, tmp_board);
+				backtracking_fill(tmp_board, false, &n_solution);
+				if (n_solution >= 2) {	// causing a multi-solution puzzle, roll back
+					board[r][c] = tmp_num;
+				}
+			}
 		}
-		int r, c;
-		if (!get_next(board, &r, &c, false, true)) {
-			return false;	// cannot find a non-block to poke
-		}
-		board[r][c] = 0;	// poke
-		return backtracking_poke(board);
+		return true;
 	}
 
 	/*
@@ -401,7 +417,7 @@ public:
 	/*
 	manully set the boardand copy to the dst
 	*/
-	void set_board(int src[9][9], int dst[9][9]) const
+	void copy_board(int src[9][9], int dst[9][9]) const
 	{
 		int* src_ptr = nullptr, * dst_ptr = nullptr;
 		for (int i = 0; i < 9; i++) {

@@ -35,3 +35,6 @@
 .vscode/
 .vs/
 x64/
+!sudoku.exe
+!README.md
+!report.md

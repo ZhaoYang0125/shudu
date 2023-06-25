@@ -7,6 +7,10 @@
 !sudoku.vcxproj.filters
 !sudoku.vcxproj.user
 !utils.h
+!report.md
+!README.md
+!assets/
 packages/
 ref/
 x64/
+freedom.txt

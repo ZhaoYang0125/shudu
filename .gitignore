@@ -31,5 +31,10 @@
 *.out
 *.app
 
-# build
-build/
+# Genetates
+.vscode/
+.vs/
+x64/
+!sudoku.exe
+!README.md
+!report.md

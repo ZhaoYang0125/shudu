@@ -1,0 +1,16 @@
+!.gitignore
+!main.cpp
+!Sudoku.cpp
+!Sudoku.h
+!sudoku.sln
+!sudoku.vcxproj
+!sudoku.vcxproj.filters
+!sudoku.vcxproj.user
+!utils.h
+!report.md
+!README.md
+!assets/
+packages/
+ref/
+x64/
+freedom.txt

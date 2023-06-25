@@ -1,0 +1,8 @@
+!.gitignore
+!packages.config
+!pch.cpp
+!pch.h
+!SudokuTest.vcxproj
+!SudokuTest.vcxproj.user
+!test.cpp
+x64/

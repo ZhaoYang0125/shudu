@@ -5,4 +5,4 @@
 !SudokuTest.vcxproj
 !SudokuTest.vcxproj.user
 !test.cpp
-/x64
+x64/

@@ -54,7 +54,7 @@ $ 7 1 $ $ $ $ $ $
 5 $ 6 $ $ 2 3 7 9
 ```
 
-以求解第二种格式的数独游戏为例，读取保存在文件`puzzle_input_fmt2.txt`中的数独游戏，求解结果将保存到`solution.txt`中。执行命令
+以求解第二种格式的数独游戏为例，读取保存在文件`puzzle_input_fmt2.txt`中的数独游戏，求解结果将保存到`sudoku.txt`中。执行命令
 ```bash
 sudoku.exe -s puzzle_input_fmt2.txt
 ```

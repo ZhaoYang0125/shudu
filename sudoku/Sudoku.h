@@ -12,7 +12,7 @@
 constexpr char STAT_FILE[] = "freedom.txt";	// dump statistics of freedom degree to file `freedom.txt`
 constexpr char PUZZLE_OUT_FILE[] = "puzzle_generated.txt";
 constexpr char FINALE_FILE[] = "finale.txt";
-constexpr char SOLUTION_FILE[] = "solution.txt";	// solution of puzzles
+constexpr char SOLUTION_FILE[] = "sudoku.txt";	// solution of puzzles
 
 /* limitations */
 constexpr int MIN_FINALE = 1;			// minimum of final results

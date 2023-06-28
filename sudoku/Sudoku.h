@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <cassert>
 #include <cstring>
 #include <cstdio>
@@ -9,6 +10,9 @@
 #include "utils.h"
 
 constexpr char STAT_FILE[] = "freedom.txt";	// dump statistics of freedom degree to file `freedom.txt`
+constexpr char PUZZLE_OUT_FILE[] = "puzzle_generated.txt";
+constexpr char FINALE_FILE[] = "finale.txt";
+constexpr char SOLUTION_FILE[] = "solution.txt";	// solution of puzzles
 
 /* limitations */
 constexpr int MIN_FINALE = 1;			// minimum of final results
@@ -24,9 +28,7 @@ constexpr int MAX_DIFFICULTY = 3;		// maximum of difficulty
 constexpr int MIN_BLANK = 20;			// minimum of blanks
 constexpr int MAX_BLANK = 55;			// maximum of blanks
 
-constexpr char output[] = "sudoku.txt";	// solution of input
-
-constexpr float HARD_RATIO = 0.15f;		// ratio of difficulty split
+constexpr float HARD_RATIO = 0.15f;		// ratio of difficulty split 3:6:11
 constexpr float MEDIUM_RATIO = 0.30f;
 constexpr float SIMPLE_RATIO = 0.55f;
 
@@ -49,7 +51,7 @@ constexpr char USAGE[] = {
 	"name       meaning                                                 range                       example\n"
 	"---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 	"-c         number of finales to be generated                       1-1000000                   suduku.exe -c 20 [generate 20 finales]\n"
-	"-s         file path of puzzles to be solved                       relative or absolute path   suduku.exe -s game.txt [solving puzzles stored at `game.txt`，dumping solution to `suduku.txt`]\n"
+	"-s         file path of puzzles to be solved                       relative or absolute path   suduku.exe -s game.txt [solving puzzles stored at `puzzle.txt`，dumping solution to `solution.txt`]\n"
 	"-n         number of puzzles to be generated                       1-10000                     suduku.exe -n 1000 [generating 1000 puzzles]\n"
 	"-m         difficulty of puzzles to be generated                   1-3                         suduku.exe -n 1000 -m 1 [both `n` and `m` are needed]\n"
 	"-r         number of blanks of puzzles to be generated             20-55                       suduku.exe -n 20 -r 20-55 [both `n` and `r` are needed]\n"
@@ -61,7 +63,7 @@ const char usage[] = {
 	"参数名字   参数意义                    范围限制        用法示例\n"
 	"-----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 	"-c         需要的数独终盘数量          1-1000000       suduku.exe -c 20 [表示生成20个数独终盘]\n"
-	"-s         需要解的数独棋盘文件路径     绝对或相对路径    suduku.exe -s game.txt [表示从game.txt读取若干个数独游戏，并给出其解答，生成到suduku.txt中]\n"
+	"-s         需要解的数独棋盘文件路径     绝对或相对路径    suduku.exe -s game.txt [表示从puzzle.txt读取若干个数独游戏，并给出其解答，生成到solution.txt中]\n"
 	"-n         需要的游戏数量              1-10000         suduku.exe -n 1000 [表示生成1000个数独游戏]\n"
 	"-m         生成游戏的难度              1-3             suduku.exe -n 1000 -m 1 [表示生成1000个简单数独游戏，只有m和n一起使用才认为参数无误]\n"
 	"-r         生成游戏中挖空的数量范围     20-55           suduku.exe -n 20 -r 20-55 [表示生成20个挖空数在20到55之间的数独游戏，只有r和n一起使用才认为参数无误]\n"
@@ -129,14 +131,24 @@ public:
 	*/
 	void generate_finales() const
 	{
+		std::ofstream finale_file(FINALE_FILE);
 		std::cout << "Generating " << _n_finale << " finales..." << std::endl;
+		finale_file << "Generating " << _n_finale << " finales...\n";
 		int board[9][9];
+		char board_str_fmt[1024];
+		char result_str[1024];
+
 		for (int i = 0; i < _n_finale; i++) {
 			gen_finale(board);
-			printf("Final %d\n", i + 1);
-			print_board(board);
+			board_to_str_fmt(board, board_str_fmt, 1024);
+			snprintf(result_str, 1024, "Finale %d:\n%s\n", i + 1, board_str_fmt);
+			std::cout << result_str;
+			finale_file << result_str;
 		}
+
 		std::cout << "All " << _n_finale << " finale(s) have(has) been generated." << std::endl;
+		finale_file << "All " << _n_finale << " finale(s) have(has) been generated.\n";
+		finale_file.close();
 	}
 
 	/*
@@ -144,24 +156,139 @@ public:
 	*/
 	void generate_puzzles() const
 	{
+		std::ofstream puzzle_out_file(PUZZLE_OUT_FILE);
 		std::cout << "Generating " << _n_puzzle << " puzzles..." << std::endl;
+		puzzle_out_file << "Generating " << _n_puzzle << " puzzles...\n";
 		int board[9][9];
+		char board_str_fmt[1024];
+		char result_str[1024];
+
 		for (int i = 0; i < _n_puzzle; i++) {
 			gen_puzzle(board);
-			printf("Puzzle %d, n_blank: %d, difficulty: %s\n", i + 1, get_board_blanks(board), DIFFICULTY_MAP[analyze_difficulty(board)]);
-			print_board(board);
+			board_to_str_fmt(board, board_str_fmt, 1024);
+			snprintf(result_str, 1024, "Puzzle %d, n_blank: %d, difficulty: %s\n%s\n", i + 1, get_board_blanks(board), DIFFICULTY_MAP[analyze_difficulty(board)], board_str_fmt);
+			std::cout << result_str;
+			puzzle_out_file << result_str;
 		}
 		std::cout << "All " << _n_puzzle << " puzzle(s) have(has) been generated." << std::endl;
+		puzzle_out_file << "All " << _n_puzzle << " puzzle(s) have(has) been generated.\n";
 	}
 
 	/*
 	Read games from input and solve them.
 	Solutions will be dump to `output.txt`
 	*/
-	void solve_puzzles() const
+	void read_and_solve() const
 	{
-		// TODO
-		assert(false);
+		std::ifstream puzzle_file(_input);
+		std::ofstream solution_file(SOLUTION_FILE, std::ios::trunc);
+		std::string line("");
+		int puzzle_cnt = 0;
+		char board_str_fmt[1024] = { 0 };
+		char result_str[1024] = { 0 };
+		while (std::getline(puzzle_file, line)) {
+			puzzle_cnt++;
+			int board[9][9] = { 0 };
+			std::string puzzle_name("");
+
+			char flag = line[0];	// determine which format the board is
+
+			// format 1: a line expresses a puzzle, like
+			// `705308000086000007000060090952870604300000109018439702000180023020906070500000008`
+			// or `7$53$8$$$$86$$$$$7$$$$6$$9$95287$6$43$$$$$1$9$184397$2$$$18$$23$2$9$6$7$5$$$$$$$8`
+			// which is quick to input
+			if ((flag >= '0' && flag <= '9') || (flag == '$')) {
+				puzzle_name += std::to_string(puzzle_cnt);
+				char* ptr = &line[0];
+				for (int i = 0; i < 9; i++) {
+					for (int j = 0; j < 9; j++) {
+						char c = *ptr++;
+						board[i][j] = (c == '$') ? 0 : (c - '0');
+					}
+				}
+			}
+
+			// format 2: like:
+			/*  game1				# game name, a string (cannot start with `$`)
+				8 6 7 1 $ $ 2 $ 5	# board, `0` can be represented as `0` or `$`
+				$ $ $ $ 8 $ 1 $ 7
+				$ $ $ $ $ $ 8 4 $
+				1 3 $ 6 7 $ $ $ 8
+				7 $ $ 2 $ 1 $ $ 6
+				6 $ $ $ 9 8 $ 5 1
+				$ 7 1 $ $ $ $ $ $
+				3 $ 2 $ 5 $ $ $ $
+				5 $ 6 $ $ 2 3 7 9 */
+			// which is intuitive
+			if ((flag < '0' || flag > '9') && (flag != '$')) {
+				puzzle_name += line;
+				for (int i = 0; i < 9; i++) {
+					std::getline(puzzle_file, line);
+					std::stringstream ss(line);
+					char c = '0';
+					for (int j = 0; j < 9; j++) {
+						ss >> c;
+						board[i][j] = (c == '$') ? 0 : (c - '0');
+					}
+				}
+			}
+
+			solve_puzzle(board);
+			board_to_str_fmt(board, board_str_fmt, 1024);
+
+			snprintf(result_str, 1024, "Solution for %s:\n%s\n", puzzle_name.c_str(), board_str_fmt);
+			std::cout << result_str;
+			solution_file << result_str;
+		}
+		puzzle_file.close();
+		solution_file.close();
+	}
+
+	/*
+	Solve puzzle using dfs and backtracking method
+	*/
+	void solve_puzzle(int board[9][9]) const
+	{
+		bool row[9][10] = { false };	// whether a num exist in row[i]
+		bool col[9][10] = { false };
+		bool box[3][3][10] = { false };
+		std::vector<std::pair<int, int>> spaces;	// positions of spaces
+		
+		// record spaces
+		for (int i = 0; i < 9; i++) {
+			for (int j = 0; j < 9; j++) {
+				int num = board[i][j];
+				if (!num) {
+					spaces.emplace_back(i, j);
+				}
+				else {
+					row[i][num] = col[j][num] = box[i / 3][j / 3][num] = true;
+				}
+			}
+		}
+
+		// solve by dfs and backtracking
+		DFS(board, spaces, 0, row, col, box);
+	}
+
+	/*
+	Define a deep-first-strategy
+	*/
+	void DFS(int board[9][9], std::vector<std::pair<int, int>> &spaces, int n_space_filled, bool row[9][10], bool col[9][10], bool box[3][3][10]) const
+	{
+		if (spaces.size() == (size_t)n_space_filled) {	// all spaces are filled
+			return;
+		}
+		int r = spaces[n_space_filled].first;
+		int c = spaces[n_space_filled].second;
+		for (int num = 1; num <= 9; num++) {
+			if (!row[r][num] && !col[c][num] && !box[r / 3][c / 3][num]) {
+				row[r][num] = col[c][num] = box[r / 3][c / 3][num] = true;
+				board[r][c] = num;
+				DFS(board, spaces, n_space_filled + 1, row, col, box);
+				row[r][num] = col[c][num] = box[r / 3][c / 3][num] = false;
+			}
+		}
 	}
 
 	/* 
@@ -186,25 +313,16 @@ public:
 		}
 	}
 
-	/* 
-	Print the board (9 * 9)
+	/*
+	Convert 9 * 9 board into a formatted string
+	`0` will be maped to `$`
 	*/
-	void print_board(int board[9][9]) const
+	void board_to_str_fmt(int board[9][9], char* board_str_fmt, int buf_sz) const
 	{
 		char board_str[81];
-		board_to_str(board, board_str);	// flatten
-		print_board(board_str);
-	}
-
-	/*
-	Print the board (flattened string) in formatted string
-	*/
-	void print_board(char* board_str) const
-	{
-		const int buf_sz = 1024;
-		char buffer[buf_sz];
+		board_to_str(board, board_str);
 		char* s = board_str;
-		snprintf(buffer, buf_sz,
+		snprintf(board_str_fmt, buf_sz,
 			"-------------------------\n"
 			"| %c %c %c | %c %c %c | %c %c %c |\n"
 			"| %c %c %c | %c %c %c | %c %c %c |\n"
@@ -213,11 +331,11 @@ public:
 			"| %c %c %c | %c %c %c | %c %c %c |\n"
 			"| %c %c %c | %c %c %c | %c %c %c |\n"
 			"| %c %c %c | %c %c %c | %c %c %c |\n"
-			"------------------------- \n"
+			"-------------------------\n"
 			"| %c %c %c | %c %c %c | %c %c %c |\n"
 			"| %c %c %c | %c %c %c | %c %c %c |\n"
 			"| %c %c %c | %c %c %c | %c %c %c |\n"
-			"-------------------------",
+			"-------------------------\n",
 			s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7], s[8], s[9],
 			s[10], s[11], s[12], s[13], s[14], s[15], s[16], s[17], s[18], s[19],
 			s[20], s[21], s[22], s[23], s[24], s[25], s[26], s[27], s[28], s[29],
@@ -227,7 +345,16 @@ public:
 			s[60], s[61], s[62], s[63], s[64], s[65], s[66], s[67], s[68], s[69],
 			s[70], s[71], s[72], s[73], s[74], s[75], s[76], s[77], s[78], s[79],
 			s[80]);
-		std::cout << buffer << std::endl;
+	}
+
+	/* 
+	Print the board (9 * 9)
+	*/
+	void print_board(int board[9][9]) const
+	{
+		char board_str_fmt[1024];
+		board_to_str_fmt(board, board_str_fmt, 1024);
+		std::cout << board_str_fmt;
 	}
 
 	/*
@@ -592,6 +719,11 @@ public:
 		}
 		reverse_count(total_bins, freedom_range, n_hard_thresh * blanks_range, n_medium_thresh * blanks_range, total_thresh);
 		//printf("total hard_thresh is %d, medium_thresh is %d\n", total_thresh.first, total_thresh.second);
+
+		// free allocated space
+		free_2d_array<int>(blanks_bins, blanks_range);
+		delete[]total_bins;
+		total_bins = nullptr;
 
 		// dump to file and analyze
 		std::ofstream stat(STAT_FILE, std::ios::trunc);

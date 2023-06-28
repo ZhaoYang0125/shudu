@@ -7,8 +7,9 @@
 
 //#define DEBUG_TEST
 //#define DEBUG_TEST_GEN_FINALE
-#define DEBUG_TEST_GEN_PUZZLE
+//#define DEBUG_TEST_GEN_PUZZLE
 //#define DEBUG_TEST_SPLIT_DIFFICULTY
+//#define DEBUG_TEST_READ_AND_SOLVE
 
 /* global variants */
 int n_finale = 0;					// number of final results
@@ -88,7 +89,7 @@ int main(int argc, char* argv[]) {
 		s.generate_puzzles();
 	}
 	if (input) {
-		s.solve_puzzles();
+		s.read_and_solve();
 	}
 #else	// DEBUG_TEST
 
@@ -113,6 +114,17 @@ int main(int argc, char* argv[]) {
 	Sudoku s;
 	s.split_difficulty();
 #endif	// DEBUG_TEST_SPLIT_DIFFICULTY
+
+#ifdef DEBUG_TEST_READ_AND_SOLVE
+	input = new char[1024];
+	//snprintf(input, 1024, "puzzle_fmt1.txt");	// test in format 1
+	snprintf(input, 1024, "puzzle_fmt2.txt");	// test in format 2
+	Sudoku s;
+	s.init(n_finale, input, n_puzzle, difficulty, n_blank, unique);
+	s.read_and_solve();
+	delete[]input;
+	input = nullptr;
+#endif	// DEBUG_TEST_READ_AND_SOLVE
 
 #endif	// DEBUG_TEST
 	return 0;

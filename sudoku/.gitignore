@@ -11,6 +11,7 @@
 !README.md
 !assets/
 packages/
-ref/
 x64/
 freedom.txt
+solution.txt
+TestResults/

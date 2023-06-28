@@ -133,7 +133,6 @@ public:
 	{
 		std::ofstream finale_file(FINALE_FILE);
 		std::cout << "Generating " << _n_finale << " finales..." << std::endl;
-		finale_file << "Generating " << _n_finale << " finales...\n";
 		int board[9][9];
 		char board_str_fmt[1024];
 		char result_str[1024];
@@ -141,13 +140,12 @@ public:
 		for (int i = 0; i < _n_finale; i++) {
 			gen_finale(board);
 			board_to_str_fmt(board, board_str_fmt, 1024);
-			snprintf(result_str, 1024, "Finale %d:\n%s\n", i + 1, board_str_fmt);
+			snprintf(result_str, 1024, "Finale %d:\n%s", i + 1, board_str_fmt);
 			std::cout << result_str;
 			finale_file << result_str;
 		}
 
 		std::cout << "All " << _n_finale << " finale(s) have(has) been generated." << std::endl;
-		finale_file << "All " << _n_finale << " finale(s) have(has) been generated.\n";
 		finale_file.close();
 	}
 
@@ -158,20 +156,22 @@ public:
 	{
 		std::ofstream puzzle_out_file(PUZZLE_OUT_FILE);
 		std::cout << "Generating " << _n_puzzle << " puzzles..." << std::endl;
-		puzzle_out_file << "Generating " << _n_puzzle << " puzzles...\n";
 		int board[9][9];
 		char board_str_fmt[1024];
-		char result_str[1024];
+		char board_str[1024];
+		char result_str_std_out[1024];
+		char result_str_fstream[1024];
 
 		for (int i = 0; i < _n_puzzle; i++) {
 			gen_puzzle(board);
 			board_to_str_fmt(board, board_str_fmt, 1024);
-			snprintf(result_str, 1024, "Puzzle %d, n_blank: %d, difficulty: %s\n%s\n", i + 1, get_board_blanks(board), DIFFICULTY_MAP[analyze_difficulty(board)], board_str_fmt);
-			std::cout << result_str;
-			puzzle_out_file << result_str;
+			board_to_str(board, board_str, 1024);
+			snprintf(result_str_std_out, 1024, "Puzzle %d (n_blank: %d, difficulty: %s)\n%s", i + 1, get_board_blanks(board), DIFFICULTY_MAP[analyze_difficulty(board)], board_str_fmt);
+			snprintf(result_str_fstream, 1024, "Puzzle %d (n_blank: %d, difficulty: %s)\n%s", i + 1, get_board_blanks(board), DIFFICULTY_MAP[analyze_difficulty(board)], board_str);
+			std::cout << result_str_std_out;
+			puzzle_out_file << result_str_fstream;
 		}
 		std::cout << "All " << _n_puzzle << " puzzle(s) have(has) been generated." << std::endl;
-		puzzle_out_file << "All " << _n_puzzle << " puzzle(s) have(has) been generated.\n";
 	}
 
 	/*
@@ -236,7 +236,7 @@ public:
 			solve_puzzle(board);
 			board_to_str_fmt(board, board_str_fmt, 1024);
 
-			snprintf(result_str, 1024, "Solution for %s:\n%s\n", puzzle_name.c_str(), board_str_fmt);
+			snprintf(result_str, 1024, "Solution for %s:\n%s", puzzle_name.c_str(), board_str_fmt);
 			std::cout << result_str;
 			solution_file << result_str;
 		}
@@ -298,7 +298,7 @@ public:
 
 	/*
 	Convert 9 * 9 board into a flattened string
-	`0` will be maped to `$`
+	`0` will be mapped to `$`
 	*/
 	void board_to_str(int board[9][9], char* board_str) const
 	{
@@ -311,6 +311,36 @@ public:
 				*ptr_dst++ = CHARACTER_MAP[*ptr_src++];
 			}
 		}
+	}
+
+	/*
+	Convert 9 * 9 board into a board-like string
+	`0` will be mapped to `$`
+	*/
+	void board_to_str(int board[9][9], char* board_str, int buf_sz) const
+	{
+		char board_str_flat[81];
+		board_to_str(board, board_str_flat);
+		char* s = board_str_flat;
+		snprintf(board_str, buf_sz,
+			"%c %c %c %c %c %c %c %c %c\n"
+			"%c %c %c %c %c %c %c %c %c\n"
+			"%c %c %c %c %c %c %c %c %c\n"
+			"%c %c %c %c %c %c %c %c %c\n"
+			"%c %c %c %c %c %c %c %c %c\n"
+			"%c %c %c %c %c %c %c %c %c\n"
+			"%c %c %c %c %c %c %c %c %c\n"
+			"%c %c %c %c %c %c %c %c %c\n"
+			"%c %c %c %c %c %c %c %c %c\n",
+			s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7], s[8], s[9],
+			s[10], s[11], s[12], s[13], s[14], s[15], s[16], s[17], s[18], s[19],
+			s[20], s[21], s[22], s[23], s[24], s[25], s[26], s[27], s[28], s[29],
+			s[30], s[31], s[32], s[33], s[34], s[35], s[36], s[37], s[38], s[39],
+			s[40], s[41], s[42], s[43], s[44], s[45], s[46], s[47], s[48], s[49],
+			s[50], s[51], s[52], s[53], s[54], s[55], s[56], s[57], s[58], s[59],
+			s[60], s[61], s[62], s[63], s[64], s[65], s[66], s[67], s[68], s[69],
+			s[70], s[71], s[72], s[73], s[74], s[75], s[76], s[77], s[78], s[79],
+			s[80]);
 	}
 
 	/*
